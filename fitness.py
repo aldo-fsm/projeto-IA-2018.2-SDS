@@ -11,7 +11,7 @@ class FuncaoRelevancia:
         
     def __call__(self, row):
         EV = evadido(row)
-        Tev = diasAposEvasao(row) 
+        Tev = diasAposEvasao(row)
         P = periculosidade(row)
         AP = prioritario(row)
         QP = qtdProcessos(row)
