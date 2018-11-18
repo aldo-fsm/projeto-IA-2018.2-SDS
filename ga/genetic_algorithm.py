@@ -7,14 +7,8 @@ class GeneticAlgorithm:
         self.mutation = mutation_op
         self.gene_set = gene_set
 
-    def randomChromossome(self, rankingSize):
-        possibilidades = list(self.gene_set)
-        ranking = []
-        for i in range(rankingSize):
-            choice = np.random.choice(possibilidades)
-            possibilidades.remove(choice)
-            ranking += [choice]
-        return ranking
+        def randomChromossome(self, rankingSize):
+        return np.random.choice(self.gene_set, size=rankingSize, replace=False)
 
     def initializePopulation(self, chromosomeSize = 100, populationSize = 100):
         self.mutation.setup(self.gene_set)

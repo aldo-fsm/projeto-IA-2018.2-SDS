@@ -3,11 +3,15 @@ from utils.mutationUtils import generateMutant
 
 
 class Crossover:
+    def __init__(self , kind= 1):
+        self.kind = kind
+
     def setup(self, gene_set, chromosomeSize):
         self.chromosomeSize = chromosomeSize
         self.gene_set = gene_set
 
-    def __call__(self, chromosome1, chromosome2 , kind = 1):
+    def __call__(self, chromosome1, chromosome2):
+        kind = self.kind
         if(kind == 1):
             return self.crossoverMoreMutants(chromosome1, chromosome2)
         elif(kind == 2):
