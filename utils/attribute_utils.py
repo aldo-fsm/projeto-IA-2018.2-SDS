@@ -14,7 +14,8 @@ def elapsedTime(date):
         try:
             date = dateutil.parser.parse(date, PARSER_INFO)
         except:
-            raise ValueError('date deve ser do tipo string ou datetime.')
+            #raise ValueError('date deve ser do tipo string ou datetime.')
+            return getTodayDate()-getTodayDate() # solução temporária para testes (alguns campos de datas estão vindo como números inteiros - Ex.: 4236)
     return today-date
 
 def diasAposEvasao(row):
@@ -84,11 +85,14 @@ def diasAposExpedicaoMandado(row):
     else:
         return 0
 
-def mandadoAtivo(row):
-    field = row['SITUAÇÃO DO MANDADO']
-    return int(field == 'ATIVO')
-
 def carcerario(row):
     field = row['CARCERÁRIO']
     return int(not pd.isnull(field))
+
+# DESNECESSÁRIO
+#def mandadoAtivo(row):
+#    field = row['SITUAÇÃO DO MANDADO']
+#    return int(field == 'ATIVO')
+#--------------
+
 

@@ -2,7 +2,7 @@ import numpy as np
 from utils.attribute_utils import evadido, diasAposEvasao, periculosidade,\
     prioritario, qtdProcessos, totalVitmasConsumado, totalVitmasTentado,\
     prisaoPreventiva, prisaoCondenatoria, mpCVLI, enderecoConhecido,\
-    prisaoDecretada, diasAposExpedicaoMandado, mandadoAtivo, carcerario,\
+    prisaoDecretada, diasAposExpedicaoMandado, carcerario,\
     possuiRG, possuiFoto
 
 class FuncaoRelevancia:
@@ -21,7 +21,17 @@ class FuncaoRelevancia:
         PC = prisaoCondenatoria(row)
         CVLImp = mpCVLI(row)
         #Pcvli = probabilidadeCVLI(row)
-        Xr = np.array([EV, 1-np.tanh(Tev), P, AP, QP, TVC, TVT, PP, PC, CVLImp])
+        
+        # ---------------- solução temporária para testes (necessário corrigir/tratar erros no attribute utils)
+        @np.vectorize
+        def toFloat(x):
+            try:
+                return float(x)
+            except:
+                return 0
+        # ----------------
+        Xr = np.array([EV, 1-np.tanh(Tev), P, AP, QP, TVC, TVT, PP, PC, CVLImp]) # ERRO (as vezes vem como strings - ['1','0',...,'32','-','5'])
+        Xr = toFloat(Xr)
         return np.average(Xr, weights=self.pesos)
 
 class FuncaoViabilidade:
@@ -34,9 +44,8 @@ class FuncaoViabilidade:
         RG = possuiRG(row)
         PD = prisaoDecretada(row)
         Texp = diasAposExpedicaoMandado(row)
-        MA = mandadoAtivo(row)
         SC = carcerario(row)
-        Xv = np.array([EC, FT, RG, PD, 1-np.tanh(Texp), MA, SC])
+        Xv = np.array([EC, FT, RG, PD, 1-np.tanh(Texp), SC])
         return np.average(Xv, weights=self.pesos)
 
 class FitnessMult:
