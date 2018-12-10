@@ -26,18 +26,22 @@ def diasAposEvasao(row):
         return 0
 
 def evadido(row):
-    return int(row.AIS.lower() == 'evadidos')
+    return int(row['STATUS CARCERÁRIO'] == 'EVADIDO')
 
 def periculosidade(row):
-    return row['PERICULOSIDADE (BI - MP - PROCESSO)']
+    return float(row['PERICULOSIDADE (BI - MP - PROCESSO)'])
 
 def prioritario(row):
     field = row['ALVO PRIORITÁRIO']
     return int(not pd.isnull(field))
 
 def qtdProcessos(row):
-    field = row['QUANTIDADE DE PROCESSOS NO TJPE']
+    field = int(row['QUANTIDADE DE PROCESSOS NO TJPE']) + int(row['SUBTOTAL PROCESSOS'])
     return field if not pd.isnull(field) else 0
+
+def qtdBasesDados(row):
+    field = row['TOTAL BASES']
+    return int(field) if not pd.isnull(field) else 0
 
 def totalVitmasConsumado(row):
     field = row['TOTAL DE VÍTIMAS-CONSUMADO']
@@ -71,12 +75,12 @@ def possuiFoto(row):
     return int(field == 'SIM')
 
 def possuiRG(row):
-    field = row['RG NO SISTEMA']
-    return int(field == 'SIM')
-
-def prisaoDecretada(row):
-    field = row['TIPO DE PRISÃO DECRETADA']
+    field = row['N. RG']
     return int(not pd.isnull(field))
+
+def qtdPrisaoDecretadas(row):
+    field = row['SUBTOTAL MP']
+    return int(field)
 
 def diasAposExpedicaoMandado(row):
     field = row['DATA EXPEDIÇÃO DO MANDADO']
@@ -86,7 +90,7 @@ def diasAposExpedicaoMandado(row):
         return 0
 
 def carcerario(row):
-    field = row['CARCERÁRIO']
+    field = row['PRONTUÁRIO SERES']
     return int(not pd.isnull(field))
 
 # DESNECESSÁRIO
