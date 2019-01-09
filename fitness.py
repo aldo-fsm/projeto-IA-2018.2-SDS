@@ -2,7 +2,7 @@ import numpy as np
 from utils.attribute_utils import evadido, diasAposEvasao, periculosidade,\
     prioritario, qtdProcessos, totalVitmasConsumado, totalVitmasTentado,\
     prisaoPreventiva, prisaoCondenatoria, mpCVLI, enderecoConhecido,\
-    prisaoDecretada, diasAposExpedicaoMandado, carcerario,\
+    qtdPrisaoDecretadas, diasAposExpedicaoMandado, carcerario,\
     possuiRG, possuiFoto
 
 class FuncaoRelevancia:
@@ -42,7 +42,7 @@ class FuncaoViabilidade:
         EC = enderecoConhecido(row)
         FT = possuiFoto(row)
         RG = possuiRG(row)
-        PD = prisaoDecretada(row)
+        PD = qtdPrisaoDecretadas(row)
         Texp = diasAposExpedicaoMandado(row)
         SC = carcerario(row)
         Xv = np.array([EC, FT, RG, PD, 1-np.tanh(Texp), SC])

@@ -40,3 +40,4 @@ def testWithRealFitness(fitness_function, table_len, pop_size=100, chr_size=10, 
         plt.scatter([i]*pop_size, [fitness_function(x) for x in optimizer.population], c='b')
         plt.scatter(i, random_optimizer.best_fitness, c='g')
     plt.show()
+    return optimizer
