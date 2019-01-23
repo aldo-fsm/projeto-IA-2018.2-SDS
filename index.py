@@ -22,7 +22,8 @@ def render_content(tab):
         return html.H1('Dash Tabs component demo')
 
 app.css.append_css({
-    "external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"
+    "external_url": "https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    # "external_url": "https://codepen.io/chriddyp/pen/bWLwgP.css"
 })
 
 if __name__ == '__main__':
