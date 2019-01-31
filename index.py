@@ -32,25 +32,6 @@ tab1_content = html.Div([
         ),
         className="mt-3",
     ),
-    dcc.Upload(
-        id='upload-data',
-        children=html.Div([
-            'Arraste ou ',
-            html.A('Selecione uma Tabela')
-        ]),
-        style={
-            'width': '100%',
-            'height': '60px',
-            'lineHeight': '60px',
-            'borderWidth': '1px',
-            'borderStyle': 'dashed',
-            'borderRadius': '5px',
-            'textAlign': 'center',
-            'margin': '10px'
-        },
-        # Allow multiple files to be uploaded
-        multiple=True
-    ),
 ],  className="container")
 
 
@@ -171,4 +152,4 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
 
 
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8051)

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-DATASET_PATH = 'datasets/BD SITE SCC _ projeto UPE_unificada.xlsx' # Baixar dados no drive e colocar na pasta datasets
+DATASET_PATH = 'datasets/' # Baixar dados no drive e colocar na pasta datasets
 
 RELEVANCY_WEIGHTS = np.array([
     70,	 # Evadido
