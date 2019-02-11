@@ -4,8 +4,8 @@ from constants import DATASET_PATH
 
 DEFAULT_DATASET = 'BD_SITE_SCC_projeto_UPE_unificada.xlsx'
 
-def load_dataset(only_actives=True):
-    dataset = pd.read_excel(DATASET_PATH)
+def load_dataset(path, only_actives=True):
+    dataset = pd.read_excel(path)
     dataset = dataset.loc[dataset['STATUS CARCERÁRIO'] != 'DUPLICIDADE']
     if only_actives:
         dataset = dataset.loc[dataset['SITUAÇÃO DO MANDADO'] == 'ATIVO']

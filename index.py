@@ -14,14 +14,6 @@ import pandas as pd
 from app import app
 from apps import ranking
 
-app.layout = html.Div([
-    dcc.Tabs(id="navbar", children=[
-        dcc.Tab(label='Tab One', value="ranking"),
-        dcc.Tab(label='Tab Two', value="1"),
-    ]),
-    html.Div(id='tabs-content')
-])
-
 tab1_content = html.Div([
     dbc.Card(
         dbc.CardBody(
@@ -75,8 +67,8 @@ def parse_contents(contents, filename, date):
 app.layout = html.Div([
     dbc.Tabs(
         [
-            dbc.Tab(tab1_content, label="Tab 1"),
-            dbc.Tab(ranking.layout, label="Tab 2"),
+            dbc.Tab(ranking.layout, label="Ranking"),
+            dbc.Tab(tab1_content, label="Tab 2"),
         ]
     )
 ])
