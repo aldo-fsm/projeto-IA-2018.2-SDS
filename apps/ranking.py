@@ -33,12 +33,13 @@ from utils.data_utils import load_dataset
 import constants
 
 UPLOAD_DIRECTORY = "./datasets"
-
+ALL_SOM_ATTRS = ['AIS', 'idade', 'BI CVLI', 'BI CVP', 'qtd TJPD', 'status evasão', 'prontuário seres', 'total de vítimas', 'status carcerário', 'BI tentativa cvli', 'bi outros', 'bi narcotráfico', 'data de prisão' , 'unidade prisional']
 df = None
 ranking_progress = 1
 
 def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=100):
-    global ranking_progress
+    print(dataset.shape)
+    ranking_progress = 0
     table_len = dataset.shape[0]
     gene_set = list(range(table_len))
     chr_size = rank_length
@@ -54,8 +55,22 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     for i in range(generations_to_run):
         optimizer.step(fitness_function)
         ranking_progress = i/generations_to_run
+        print(ranking_progress)
     ranking_progress = 1
-    return optimizer
+    print(ranking_progress)
+    population = optimizer.population
+    print(population.shape)
+    fitnesses = [fitness_function(chr) for chr in population]
+    print(fitnesses)
+    best_index = np.argmax(fitnesses)
+    best_chr = population[best_index]
+    print(best_chr)
+    ranking = dataset.iloc[best_chr]
+    ind_fitness = ranking.apply(fitness_function.individual_fitness, axis=1).values
+    ranking.insert(len(ranking.columns), 'fitness', ind_fitness)
+    print('sorting...')
+    return ranking.sort_values('fitness', ascending=False)
+
 
 if not os.path.exists(UPLOAD_DIRECTORY):
     os.makedirs(UPLOAD_DIRECTORY)
@@ -67,10 +82,10 @@ def download(path):
 
 
 layout = html.Div([
-    dcc.Interval(
-            id='ranking-progress-update',
-            interval=1000
-    ),
+    # dcc.Interval(
+    #         id='ranking-progress-update',
+    #         interval=1000
+    # ),
     html.H1("Ranqueamento"),
     html.Div([
         html.Div([
@@ -105,6 +120,14 @@ layout = html.Div([
                 html.Div([
                     html.H2("Parâmetros"),
                         # dbc.Col([
+                        
+                        dcc.Dropdown(
+                            options=[
+                                {'label': 'Top {}'.format(i), 'value': i} for i in [5, 10, 20, 50, 100, 500]
+                            ],
+                            placeholder='Tamanho do ranking',
+                            id='rank-size-dropdown'
+                        ),
                         dbc.Card([
                             dbc.CardHeader('Viabilidade'),
                             dbc.CardBody([
@@ -120,14 +143,18 @@ layout = html.Div([
                         dbc.Card([
                             dbc.CardHeader('Proximidade'),
                             dbc.CardBody([
+                                html.Button(id='toggle-all'),
+                                html.Div([
+                                    dbc.Checklist(
+                                        options=[
+                                            {'label': attr, 'value': attr} for attr in ALL_SOM_ATTRS
+                                        ],
+                                        id='som-attrs-checkboxes',
+                                        values=[],
+                                    )
+
+                                ], className='mb-3', style={'overflowY': 'scroll', 'height': '20vh'}),
                                 dcc.Slider(value=0.5, step=0.01, min=0, max=1, marks={0:'0', 1:'1'}, id='G-slider'),
-                                dbc.Checklist(
-                                    options=[
-                                        {'label': attr, 'value': attr} for attr in ['IAS']
-                                    ],
-                                    values=[],
-                                    className='mt-3'
-                                )
                             ])
                         ], className='mt-3'),
             ], className='mt-3'),
@@ -143,7 +170,7 @@ layout = html.Div([
         ], className="col-8")
     ], className="row mt-5"),
     html.Div([
-        dbc.Button(id='rank-button'),
+        dbc.Button('Ranquear', id='rank-button'),
     ], id='button-progress', className='d-flex justify-content-center'),
     html.Div([
         html.Div([
@@ -185,37 +212,56 @@ def file_download_link(filename):
     location = "/download/{}".format(urlquote(filename))
     return html.A(filename, href=filename)
 
-@app.callback(Output('ranking-progress', 'value'),
-             [Input('ranking-progress-update', 'n_intervals')])
-def update_progress(n_intervals):
-    global ranking_progress
-    return str(ranking_progress*100)
+# @app.callback(Output('ranking-progress', 'value'),
+#              [Input('ranking-progress-update', 'n_intervals')])
+# def update_progress(n_intervals):
+#     global ranking_progress
+#     return str(ranking_progress*100)
 
-@app.callback(Output('button-progress', 'children'),
-             [Input('ranking-progress', 'value')])
-def button_progress(progress):
-    if progress == '100':
-        return  dbc.Button('Ranquear', id='rank-button', color="success")
+@app.callback(Output('toggle-all', 'children'),
+             [Input('toggle-all', 'n_clicks')])
+def change_toggle_btn_text(n_clicks):
+    if n_clicks is not None and n_clicks % 2 != 0:
+        return 'Desmarcar tudo'
     else:
-        return dbc.Progress(value=ranking_progress, id='ranking-progress')
+        return 'Marcar tudo'
+
+@app.callback(Output('som-attrs-checkboxes', 'values'),
+             [Input('toggle-all', 'n_clicks')])
+def toggle_all_checkboxes(n_clicks):
+    if n_clicks is not None and n_clicks % 2 != 0:
+        return ALL_SOM_ATTRS
+    else:
+        return []
+        
+
+# @app.callback(Output('button-progress', 'children'),
+#              [Input('ranking-progress', 'value')])
+# def button_progress(progress):
+#     if progress == '100':
+#         return  dbc.Button('Ranquear', id='rank-button', color="success")
+#     else:
+#         return dbc.Progress(value=ranking_progress, id='ranking-progress')
 import time
 @app.callback(Output('result', 'children'),
             [Input('rank-button', 'n_clicks')],
             [State('V-slider', 'value'),
              State('R-slider', 'value'),
-             State('G-slider', 'value')])
-def on_rank_btn_click(n_clicks, V, R, G):
-    print(n_clicks, V, R, G)
-    global ranking_progress
+             State('G-slider', 'value'),
+             State('som-attrs-checkboxes', 'values'),
+             State('rank-size-dropdown', 'values')])
+def on_rank_btn_click(n_clicks, V, R, G, som_attrs, ranking_size):
+    print(n_clicks, V, R, G, som_attrs, ranking_size)
     if n_clicks:
-        ranking_progress = 0
-        for i in range(100):
-            print(i)
-            time.sleep(0.5)
-            ranking_progress += .01
-        ranking_progress = 1
-        return "alsdjadkljsdlajkdsldkajldajd"
-    return ''
+        ranking = rank(df, V, R, G, som_attrs, ranking_size)
+        return dash_table.DataTable(
+            id='table',
+            columns=[{"name": i, "id": i} for i in df.columns],
+            data=ranking.astype(str).to_dict("rows"),
+            style_table={'overflowX': 'scroll'},
+        )
+    else:
+        return ''
 
 last_n_clicks = None
 

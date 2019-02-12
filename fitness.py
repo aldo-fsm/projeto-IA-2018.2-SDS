@@ -81,11 +81,13 @@ class FitnessSum:
         self.V = FuncaoViabilidade(Kv)
         self.dataset = dataset
 
+    def individual_fitness(self, row):
+        return self.Cr*self.R(row) + self.Cv*self.V(row)
+
     def __call__(self, chromossome):
         data = self.dataset.iloc[chromossome]
         if len(data) == 0:
             return -np.inf
         grouping = self.G(data)
-        relevancy = np.mean(data.apply(self.R, axis=1).values)
-        viability = np.mean(data.apply(self.V, axis=1).values)
-        return self.Cg*grouping + self.Cr*relevancy + self.Cv*viability
+        ind_fitness = np.mean(data.apply(self.individual_fitness, axis=1).values)
+        return self.Cg*grouping + ind_fitness
