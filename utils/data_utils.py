@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from constants import DATASET_PATH
+import base64
 
 DEFAULT_DATASET = 'BD_SITE_SCC_projeto_UPE_unificada.xlsx'
 
@@ -10,6 +11,27 @@ def load_dataset(path, only_actives=True):
     if only_actives:
         dataset = dataset.loc[dataset['SITUAÇÃO DO MANDADO'] == 'ATIVO']
     return dataset
+
+
+def parse_contents(contents, filename):
+    content_type, content_string = contents.split(',')
+
+    decoded = base64.b64decode(content_string)
+    try:
+        if 'csv' in filename:
+            # Assume that the user uploaded a CSV file
+            df = pd.read_csv(
+                io.StringIO(decoded.decode('utf-8')))
+        elif 'xls' in filename:
+            # Assume that the user uploaded an excel file
+            df = pd.read_excel(io.BytesIO(decoded))
+
+    except Exception as e:
+        print(e)
+        return None
+
+    return df
+
 
 '''
 def add_identifier(dataset):

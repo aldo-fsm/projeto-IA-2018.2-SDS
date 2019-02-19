@@ -34,8 +34,6 @@ import constants
 
 UPLOAD_DIRECTORY = "./datasets"
 ALL_SOM_ATTRS = ['AIS', 'idade', 'BI CVLI', 'BI CVP', 'qtd TJPD', 'status evasão', 'prontuário seres', 'total de vítimas', 'status carcerário', 'BI tentativa cvli', 'bi outros', 'bi narcotráfico', 'data de prisão' , 'unidade prisional']
-df = None
-ranking_progress = 1
 
 def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=100):
     print(dataset.shape)
@@ -66,50 +64,15 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     best_chr = population[best_index]
     print(best_chr)
     ranking = dataset.iloc[best_chr]
-    ind_fitness = ranking.apply(fitness_function.individual_fitness, axis=1).values
+    ind_fitness = ranking.apply(fitness_function.individual_fitness).values
     ranking.insert(len(ranking.columns), 'fitness', ind_fitness)
     print('sorting...')
     return ranking.sort_values('fitness', ascending=False)
 
-
-if not os.path.exists(UPLOAD_DIRECTORY):
-    os.makedirs(UPLOAD_DIRECTORY)
-
-@server.route("/download/<path:path>")
-def download(path):
-    """Serve a file from the upload directory."""
-    return send_from_directory(UPLOAD_DIRECTORY, path, as_attachment=True)
-
-
-layout = html.Div([
-    # dcc.Interval(
-    #         id='ranking-progress-update',
-    #         interval=1000
-    # ),
+layout = '''html.Div([
     html.H1("Ranqueamento"),
     html.Div([
         html.Div([
-            html.Div([
-                dcc.Location(id='url', refresh=False),
-                html.H2("Upload de Tabelas"),
-                dcc.Upload(
-                    id="upload-data",
-                    children=html.Div(
-                        ["Arraste ou selecione tabelas para upload."]
-                    ),
-                    style={
-                        "width": "100%",
-                        "height": "60px",
-                        "lineHeight": "60px",
-                        "borderWidth": "1px",
-                        "borderStyle": "dashed",
-                        "borderRadius": "5px",
-                        "textAlign": "center",
-                        "margin": "10px",
-                    },
-                    multiple=True,
-                ),
-            ]),
             html.Div([
                 html.H2("Lista de Tabelas"),
                 html.Div([
@@ -179,44 +142,7 @@ layout = html.Div([
             ],id='result')
         ], className="col-8")
     ], className="row mt-5"),
-], className="container mt-3")
-
-
-def save_file(name, content):
-    """Decode and store a file uploaded with Plotly Dash."""
-    data = content.encode("utf8").split(b";base64,")[1]
-    with open(os.path.join(UPLOAD_DIRECTORY, name), "wb") as fp:
-        fp.write(base64.decodebytes(data))
-
-
-def uploaded_files():
-    """List the files in the upload directory."""
-    files = []
-    for filename in os.listdir(UPLOAD_DIRECTORY):
-        path = os.path.join(UPLOAD_DIRECTORY, filename)
-        if os.path.isfile(path):
-            files.append(filename)
-    return files
-
-def remove_uploaded_files():
-    files = []
-    for filename in os.listdir(UPLOAD_DIRECTORY):
-        path = os.path.join(UPLOAD_DIRECTORY, filename)
-        if os.path.isfile(path):
-            os.remove(path)
-    return files
-
-
-def file_download_link(filename):
-    """Create a Plotly Dash 'A' element that downloads a file from the app."""
-    location = "/download/{}".format(urlquote(filename))
-    return html.A(filename, href=filename)
-
-# @app.callback(Output('ranking-progress', 'value'),
-#              [Input('ranking-progress-update', 'n_intervals')])
-# def update_progress(n_intervals):
-#     global ranking_progress
-#     return str(ranking_progress*100)
+], className="container mt-3")'''
 
 @app.callback(Output('toggle-all', 'children'),
              [Input('toggle-all', 'n_clicks')])
@@ -262,51 +188,3 @@ def on_rank_btn_click(n_clicks, V, R, G, som_attrs, ranking_size):
         )
     else:
         return ''
-
-last_n_clicks = None
-
-@app.callback(
-    Output("file-list", "children"),
-    [Input("upload-data", "filename"), Input("upload-data", "contents"), Input("clear-btn", "n_clicks")],
-)
-def update_output(uploaded_filenames, uploaded_file_contents, n_clicks):
-    """Save uploaded files and regenerate the file list."""
-    global last_n_clicks
-    if n_clicks != last_n_clicks:
-        remove_uploaded_files()
-        last_n_clicks = n_clicks
-    elif uploaded_filenames is not None and uploaded_file_contents is not None:
-        for name, data in zip(uploaded_filenames, uploaded_file_contents):
-            name = 'BD_SITE_SCC_projeto_UPE_unificada.xlsx'
-            save_file(name, data)
-    files = uploaded_files()
-    if len(files) == 0:
-        return "No files yet!"
-    else:
-        return [dbc.RadioItems(id="file-radioitems", options=[{'label': filename, 'value': filename} for filename in files])]
-
-
-@app.callback(Output('file-content', 'children'),
-              [Input('file-radioitems', 'value')])
-def display_file(filename):
-    if filename:
-        try:
-            global df
-            df = load_dataset(os.path.join(UPLOAD_DIRECTORY, filename))
-            return dash_table.DataTable(
-                    id='table',
-                    columns=[{"name": i, "id": i} for i in df.columns],
-                    data=df.astype(str).to_dict("rows"),
-                    style_table={'overflowX': 'scroll'},
-                )
-        except:
-            return ''
-    return ''
-
-
-@app.callback(Output('file-card-header', 'children'),
-              [Input('file-radioitems', 'value')])
-def display_filename(filename):
-    if filename:
-        return filename
-    return 'Nenhuma tabela selecionada'

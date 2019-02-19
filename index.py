@@ -12,7 +12,7 @@ import dash_table
 import pandas as pd
 
 from app import app
-from apps import ranking
+from apps import ranking, table_select
 
 tab1_content = html.Div([
     dbc.Card(
@@ -65,8 +65,10 @@ def parse_contents(contents, filename, date):
     ])
 
 app.layout = html.Div([
+    dcc.Store(id='session-store', storage_type='session'),
     dbc.Tabs(
         [
+            dbc.Tab(table_select.layout, label="Dataset"),
             dbc.Tab(ranking.layout, label="Ranking"),
             dbc.Tab(tab1_content, label="Tab 2"),
         ]
