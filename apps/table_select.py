@@ -49,45 +49,36 @@ layout = html.Div([
     html.H1("Seleção da base de dados"),
     html.Div([
         html.Div([
-            html.Div([
-                dcc.Location(id='url', refresh=False),
-                html.H2("Upload de Tabelas"),
-                dcc.Upload(
-                    id="upload-data",
-                    children=html.Div(
-                        ["Arraste ou selecione tabelas para upload."]
-                    ),
-                    style={
-                        "width": "100%",
-                        "height": "60px",
-                        "lineHeight": "60px",
-                        "borderWidth": "1px",
-                        "borderStyle": "dashed",
-                        "borderRadius": "5px",
-                        "textAlign": "center",
-                        "margin": "10px",
-                    },
-                    multiple=False,
-                ),
-            ]),
-            html.Div([
-                html.H2("Lista de Tabelas"),
-                html.Div([
-                    dbc.RadioItems(id="file-radioitems")
-                ], id='file-list'),
-                html.Button('Limpar', id='clear-btn'),
-            ], className='mt-3'),
-        ], className='mr-3', style={"max-width": "500px"}),
-        html.Div([
-            html.H2("Tabela Selecionada"),
+            # html.H2("Tabela Selecionada"),
             dbc.Card([
                 dbc.CardHeader(id='file-card-header'),
                 dbc.CardBody([
-                    html.P('', id='file-content', style={'white-space' : 'pre-line'})
-                ], style={'overflowY': 'scroll', 'height': '60vh'})
+                    html.Div([
+                        dcc.Location(id='url', refresh=False),
+                        # html.H2("Upload de Tabelas"),
+                        dcc.Upload(
+                            id="upload-data",
+                            children=html.Div(
+                                ["Arraste ou selecione tabelas para upload."]
+                            ),
+                            style={
+                                "width": "100%",
+                                "height": "60px",
+                                "lineHeight": "60px",
+                                "borderWidth": "1px",
+                                "borderStyle": "dashed",
+                                "borderRadius": "5px",
+                                "textAlign": "center",
+                                "margin": "10px",
+                            },
+                            multiple=False,
+                        ),
+                    ]),
+                    # html.P('', id='file-content', style={'white-space' : 'pre-line'})
+                ], style={'overflowY': 'scroll', 'width': '40vw'})
             ])
-        ], className="col-8")
-    ], className="row mt-5"),
+        ], className="row")
+    ], className="mt-5"),
 ], className="container mt-3")
 
 
@@ -117,44 +108,44 @@ def file_download_link(filename):
 #         return dbc.Progress(value=ranking_progress, id='ranking-progress')
 
 @app.callback(
-    Output("session-store", "data"),
+    Output("storage", "data"),
     [Input("upload-data", "filename"), Input("upload-data", "contents")],
-    [State("session-store", "data")],
+    [State("storage", "data")],
 )
 def update_output(uploaded_filename, uploaded_file_contents, data):
-    data = data or {'dataset': {'table_name': None, 'data': None}}
+    data = data or {}
     if uploaded_filename is not None and uploaded_file_contents is not None:
-        print(uploaded_filename)
-        data['dataset'] = {'table_name':  uploaded_filename, 'data': uploaded_file_contents}
+        data['filename'] = uploaded_filename
+        data['file_contents'] = uploaded_file_contents
+    print('uploaded')
     return data
 
 @app.callback(Output('file-content', 'children'),
-              [Input('session-store', 'data')])
+              [Input('storage', 'data')])
 def display_file(data):
-    dataset = data.get('dataset')
-    print('aaaa')
-    if False:#dataset.get('data'):
-        try:
-            df = parse_contents(data.get('dataset').get('data'), dataset.get('table_name'))
-            return dash_table.DataTable(
-                    id='table',
-                    columns=[{"name": i, "id": i} for i in df.columns],
-                    data=df.astype(str).to_dict("rows"),
-                    style_table={'overflowX': 'scroll'},
-                )
-        except:
-            return ''
+    # filename, content = data.get('filename'), data.get('file_contents')
+    # if filename:
+    #     try:
+    #         df = parse_contents(content, filename)
+    #         print(':)')
+    #         return dash_table.DataTable(
+    #                 id='table',
+    #                 columns=[{"name": i, "id": i} for i in df.columns],
+    #                 data=df.astype(str).to_dict("rows"),
+    #                 style_table={'overflowX': 'scroll'},
+    #             )
+    #     except:
+    #         print(':(')
+    #         return ''
     return ''
 
 
 @app.callback(Output('file-card-header', 'children'),
-             [Input('session-store', 'modified_timestamp')],
-             [State('session-store', 'data')])
+             [Input('storage', 'modified_timestamp')],
+             [State('storage', 'data')])
 def display_filename(ts, data):
     print(ts)
-    if ts is None:
-            raise PreventUpdate
-    filename = data.get('dataset').get('table_name')
+    filename = data.get('filename')
     print(filename)
     if filename:
         return filename

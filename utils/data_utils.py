@@ -1,7 +1,8 @@
+import io
+import base64
 import pandas as pd
 import numpy as np
 from constants import DATASET_PATH
-import base64
 
 DEFAULT_DATASET = 'BD_SITE_SCC_projeto_UPE_unificada.xlsx'
 
