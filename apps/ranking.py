@@ -120,7 +120,7 @@ layout = html.Div([
                 html.H2("Ranking"),
                 html.Div([
                     # dbc.Progress(value=ranking_progress, id='ranking-progress'),
-                ],id='result')
+                ],id='result', style={'overflowY': 'scroll', 'height': '60vh'})
             ], className='mt-3'),
         ], className='col-md-5'),
     ], className="row mt-5 mb-3"),

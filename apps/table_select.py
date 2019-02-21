@@ -46,7 +46,7 @@ def download(path):
 
 
 layout = html.Div([
-    html.H1("Seleção da base de dados"),
+    html.H1("Upload de Tabelas"),
     html.Div([
         html.Div([
             # html.H2("Tabela Selecionada"),
