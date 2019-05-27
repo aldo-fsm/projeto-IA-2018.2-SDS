@@ -3,7 +3,7 @@ import datetime
 import io
 import os
 import re
-
+from tqdm import tqdm
 from urllib.parse import quote as urlquote
 from matplotlib import pyplot as plt
 
@@ -29,13 +29,15 @@ from ga.selection import Selection
 from fitness import FitnessSum
 
 from utils.data_utils import load_dataset, parse_contents
+from preprocessing import preprocessGA
 
 import constants
 
 UPLOAD_DIRECTORY = "./datasets"
 ALL_SOM_ATTRS = ['AIS', 'idade', 'BI CVLI', 'BI CVP', 'qtd TJPD', 'status evasão', 'prontuário seres', 'total de vítimas', 'status carcerário', 'BI tentativa cvli', 'bi outros', 'bi narcotráfico', 'data de prisão' , 'unidade prisional']
 
-def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=3):
+def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=10):
+    processedData = preprocessGA(dataset, R, V)
     print('rank size', rank_length)
     print(dataset.shape)
     ranking_progress = 0
@@ -49,15 +51,16 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     optimizer = GeneticAlgorithm(gene_set, selection, crossover, mutation)
     optimizer.initializePopulation(chr_size, pop_size)
 
-    fitness_function = FitnessSum(G, R, V, constants.RELEVANCY_WEIGHTS, constants.VIABILITY_WEIGHTS, dataset)
+    fitness_function = FitnessSum(G, processedData)
 
-    for i in range(generations_to_run):
-        print(i)
+    for i in tqdm(range(generations_to_run)):
+        # print(i)
         optimizer.step(fitness_function)
         ranking_progress = i/generations_to_run
-        print(ranking_progress)
-    ranking_progress = 1
-    print(ranking_progress)
+        # print(ranking_progress)
+    # ranking_progress = 1
+    # print(ranking_progress)
+
     population = optimizer.population
     fitnesses = [fitness_function(chr) for chr in population]
     print(fitnesses)
@@ -65,10 +68,9 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     best_chr = population[best_index]
     print(best_chr)
     ranking = dataset.iloc[best_chr]
-    ind_fitness = ranking.apply(fitness_function.individual_fitness, axis=1).values
-    ranking.insert(len(ranking.columns), 'fitness', ind_fitness)
+    ranking['individual_fitness'] = processedData.individual_fitness.iloc[best_chr]
     print('sorting...')
-    return ranking.sort_values('fitness', ascending=False)
+    return ranking.sort_values('individual_fitness', ascending=False)
 
 layout = html.Div([
     html.H1("Ranqueamento"),
@@ -119,8 +121,7 @@ layout = html.Div([
             html.Div([
                 html.H2("Ranking"),
                 html.Div([
-                    # dbc.Progress(value=ranking_progress, id='ranking-progress'),
-                ],id='result', style={'overflowY': 'scroll', 'height': '60vh'})
+                ],id='result')
             ], className='mt-3'),
         ], className='col-md-5'),
     ], className="row mt-5 mb-3"),
@@ -171,12 +172,25 @@ def on_rank_btn_click(n_clicks, data, V, R, G, som_attrs, ranking_size):
     print(n_clicks, V, R, G, som_attrs, ranking_size)
     if n_clicks:
         ranking = rank(df, V, R, G, som_attrs, int(ranking_size))
+        ranking.to_csv(os.path.join(UPLOAD_DIRECTORY, 'ranking.csv'))
         print(ranking)
-        return dash_table.DataTable(
-            id='table',
-            columns=[{"name": i, "id": i} for i in df.columns],
-            data=ranking.astype(str).to_dict("rows"),
-            style_table={'overflowX': 'scroll', 'width':'100%'},
-        )
+        return html.Div([
+            html.Div([
+                dash_table.DataTable(
+                    id='table',
+                    columns=[{"name": i, "id": i} for i in ranking.columns],
+                    data=ranking.astype(str).to_dict("rows"),
+                    style_table={'overflowX': 'scroll', 'width':'100%'},
+                ),
+            ], style={'overflowY': 'scroll', 'height': '60vh'}),
+            html.Div([
+                html.A('Download Ranking', href='/download/ranking.csv')
+            ], id='button-progress', className='mt-3 d-flex justify-content-center'),
+        ])
     else:
         return ''
+
+# @app.callback(Output('url', 'pathname'),
+#             [Input('download-button', 'n_clicks')])
+# def downloadRanking(clicks):
+#     return '/download/ranking.csv'

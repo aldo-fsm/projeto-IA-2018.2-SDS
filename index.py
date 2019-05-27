@@ -18,7 +18,7 @@ tab1_content = html.Div([
     dbc.Card(
         dbc.CardBody(
             [
-                dbc.CardText("This is tab 1!"),
+                html.P("This is tab 1!", className='card-text'),
                 dbc.Button("Click here", color="success"),
             ]
         ),
