@@ -32,7 +32,8 @@ app.layout = html.Div([
         [
             dbc.Tab(table_select.layout, label="Dataset"),
             dbc.Tab(ranking.layout, label="Ranking"),
-            dbc.Tab(tab1_content, label="Tab 2"),
+            # dbc.Tab(som_map.layout, label="Mapa SOM"),
+            # dbc.Tab(tab1_content, label="Tab 2"),
         ]
     )
 ])

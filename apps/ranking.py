@@ -3,9 +3,11 @@ import datetime
 import io
 import os
 import re
+from shutil import copyfile
 from tqdm import tqdm
 from urllib.parse import quote as urlquote
 from matplotlib import pyplot as plt
+from PIL import Image
 
 from flask import send_from_directory
 
@@ -37,10 +39,10 @@ UPLOAD_DIRECTORY = "./datasets"
 ALL_SOM_ATTRS = ['AIS', 'idade', 'BI CVLI', 'BI CVP', 'qtd TJPD', 'status evasão', 'prontuário seres', 'total de vítimas', 'status carcerário', 'BI tentativa cvli', 'bi outros', 'bi narcotráfico', 'data de prisão' , 'unidade prisional']
 
 def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=10):
-    processedData = preprocessGA(dataset, R, V)
+    processedData = preprocessGA(dataset, R, V, som_attrs)
     print('rank size', rank_length)
     print(dataset.shape)
-    ranking_progress = 0
+    # ranking_progress = 0
     table_len = dataset.shape[0]
     gene_set = list(range(table_len))
     chr_size = rank_length
@@ -56,7 +58,7 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     for i in tqdm(range(generations_to_run)):
         # print(i)
         optimizer.step(fitness_function)
-        ranking_progress = i/generations_to_run
+        # ranking_progress = i/generations_to_run
         # print(ranking_progress)
     # ranking_progress = 1
     # print(ranking_progress)
@@ -127,7 +129,9 @@ layout = html.Div([
     ], className="row mt-5 mb-3"),
     html.Div([
         dbc.Button('Ranquear', id='rank-button'),
-    ], id='button-progress', className='d-flex justify-content-center'),
+    ], id='button-progress', className='d-flex justify-content-center row'),
+    html.Div([
+    ], id='som-map', className='d-flex justify-content-center row'),
 ], className="container mt-3")
 
 @app.callback(Output('toggle-all', 'children'),
@@ -138,15 +142,27 @@ def change_toggle_btn_text(n_clicks):
     else:
         return 'Marcar tudo'
 
-@app.callback(Output('som-attrs-checkboxes', 'values'),
-             [Input('toggle-all', 'n_clicks')])
-def toggle_all_checkboxes(n_clicks):
-    if n_clicks is not None and n_clicks % 2 != 0:
-        return ALL_SOM_ATTRS
+@app.callback(Output('som-map', 'children'),
+             [Input('result', 'children')],
+             [State('som-attrs-checkboxes', 'values')])
+def toggle_all_checkboxes(_, som_attrs):
+    if len(som_attrs) > 0:
+        image = Image.open('mapa.png')
+        buffered = io.BytesIO()
+        image.save(buffered, format="PNG")
+        img_str = base64.b64encode(buffered.getvalue())
+        return html.Img(src='data:image/png;base64,{}'.format(str(img_str)[2:-1]))
     else:
         return []
-        
 
+# @app.callback(Output('som-attrs-checkboxes', 'values'),
+#              [Input('toggle-all', 'n_clicks')])
+# def show_som_map(ranking_div):
+#     if n_clicks is not None and n_clicks % 2 != 0:
+#         return ALL_SOM_ATTRS
+#     else:
+#         return []
+        
 # @app.callback(Output('button-progress', 'children'),
 #              [Input('ranking-progress', 'value')])
 # def button_progress(progress):
