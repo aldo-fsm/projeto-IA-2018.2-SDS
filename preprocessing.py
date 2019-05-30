@@ -27,6 +27,22 @@ def preprocessGA(dataset, relevancy_constant, viability_constant, grouping_featu
 
 def preprocessSOM(dataset, selected_features):
 
+    featureNameMapping = {
+        'AIS': 'AIS',
+        'DATA DA PRISÃO ou REGISTRO NO CARCERÁRIO': 'data de prisão',
+        'PRONTUÁRIO SERES': 'prontuário seres',
+        'STATUS CARCERÁRIO': 'status evasão',
+        'UNIDADE PRISIONAL ATUAL': 'unidade prisional',
+        'IDADE': 'idade',
+        'BI CVLI': 'BI CVLI',
+        'BI CVP': 'BI CVP',
+        'QUANTIDADE DE PROCESSOS NO TJPE': 'qtd TJPD',
+        'TOTAL DE VÍTIMAS-CONSUMADO': 'total de vítimas',
+        'BI TENTATIVA-CVLI': 'BI tentativa cvli',
+        'BI OUTROS': 'bi outros',
+        'BI NARCOTRÁFICO': 'bi narcotráfico'
+    }
+
     numeric_features = [
         feature for feature in [
             'IDADE',
@@ -37,7 +53,7 @@ def preprocessSOM(dataset, selected_features):
             'BI TENTATIVA-CVLI',
             'BI OUTROS',
             'BI NARCOTRÁFICO'
-        ] if feature in selected_features]
+        ] if featureNameMapping[feature] in selected_features]
 
     categorical_features = [
         feature for feature in [
@@ -46,7 +62,9 @@ def preprocessSOM(dataset, selected_features):
             'PRONTUÁRIO SERES',
             'STATUS CARCERÁRIO',
             'UNIDADE PRISIONAL ATUAL'
-        ] if feature in selected_features]
+        ] if featureNameMapping[feature] in selected_features]
+
+    print('{} numeric and {} categorical features selected'.format(len(numeric_features), len(categorical_features)))
 
     numeric_transformer = Pipeline(steps=[
         ('imputer', SimpleImputer(strategy='median')),

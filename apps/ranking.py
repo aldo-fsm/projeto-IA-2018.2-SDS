@@ -145,7 +145,7 @@ def change_toggle_btn_text(n_clicks):
 @app.callback(Output('som-map', 'children'),
              [Input('result', 'children')],
              [State('som-attrs-checkboxes', 'values')])
-def toggle_all_checkboxes(_, som_attrs):
+def show_som_map(_, som_attrs):
     if len(som_attrs) > 0:
         image = Image.open('mapa.png')
         buffered = io.BytesIO()
@@ -155,13 +155,13 @@ def toggle_all_checkboxes(_, som_attrs):
     else:
         return []
 
-# @app.callback(Output('som-attrs-checkboxes', 'values'),
-#              [Input('toggle-all', 'n_clicks')])
-# def show_som_map(ranking_div):
-#     if n_clicks is not None and n_clicks % 2 != 0:
-#         return ALL_SOM_ATTRS
-#     else:
-#         return []
+@app.callback(Output('som-attrs-checkboxes', 'values'),
+             [Input('toggle-all', 'n_clicks')])
+def toggle_all_checkboxes(n_clicks):
+    if n_clicks is not None and n_clicks % 2 != 0:
+        return ALL_SOM_ATTRS
+    else:
+        return []
         
 # @app.callback(Output('button-progress', 'children'),
 #              [Input('ranking-progress', 'value')])
