@@ -15,6 +15,11 @@ dash-table = "*"
 numpy = "*"
 pandas = "*"
 matplotlib = "*"
+scikit-learn = "*"
+tqdm = "*"
+pillow = "*"
+somoclu = "*"
+xlrd = "*"
 
 [requires]
 python_version = "3.7"
