@@ -37,6 +37,8 @@ class GeneticAlgorithm:
         for _ in range(self.population_size - len(survivors)):
             new_population.append(self.mutation(next(gen)))
         self.population = new_population
+        best_index = np.argmax(fitness_values)
+        self.best_fitness = fitness_values[best_index]
 
 #================================ GA ANTIGO ==========================================
     # def optimize(costFunction, chromSize, popSize, selectionRate, mutRate, **kwargs):

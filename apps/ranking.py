@@ -11,6 +11,8 @@ from PIL import Image
 
 from flask import send_from_directory
 
+from plotly import graph_objs as go
+
 import dash
 from dash.dependencies import Input, Output, State
 import dash_core_components as dcc
@@ -38,7 +40,7 @@ import constants
 UPLOAD_DIRECTORY = "./datasets"
 ALL_SOM_ATTRS = ['AIS', 'idade', 'BI CVLI', 'BI CVP', 'qtd TJPD', 'status evasão', 'prontuário seres', 'total de vítimas', 'status carcerário', 'BI tentativa cvli', 'bi outros', 'bi narcotráfico', 'data de prisão' , 'unidade prisional']
 
-def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=10):
+def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_run=100):
     processedData = preprocessGA(dataset, R, V, som_attrs)
     print('rank size', rank_length)
     print(dataset.shape)
@@ -54,10 +56,11 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     optimizer.initializePopulation(chr_size, pop_size)
 
     fitness_function = FitnessSum(G, processedData)
-
+    convergence_curve = []
     for i in tqdm(range(generations_to_run)):
         # print(i)
         optimizer.step(fitness_function)
+        convergence_curve.append(optimizer.best_fitness)
         # ranking_progress = i/generations_to_run
         # print(ranking_progress)
     # ranking_progress = 1
@@ -72,7 +75,7 @@ def rank(dataset, V, R, G, som_attrs, rank_length, pop_size=30, generations_to_r
     ranking = dataset.iloc[best_chr]
     ranking['individual_fitness'] = processedData.individual_fitness.iloc[best_chr]
     print('sorting...')
-    return ranking.sort_values('individual_fitness', ascending=False)
+    return ranking.sort_values('individual_fitness', ascending=False), convergence_curve
 
 layout = html.Div([
     html.H1("Ranqueamento"),
@@ -187,7 +190,7 @@ def on_rank_btn_click(n_clicks, data, V, R, G, som_attrs, ranking_size):
     df = parse_contents(content, filename)
     print(n_clicks, V, R, G, som_attrs, ranking_size)
     if n_clicks:
-        ranking = rank(df, V, R, G, som_attrs, int(ranking_size))
+        ranking, convergence_curve = rank(df, V, R, G, som_attrs, int(ranking_size))
         ranking.to_csv(os.path.join(UPLOAD_DIRECTORY, 'ranking.csv'))
         print(ranking)
         return html.Div([
@@ -202,6 +205,37 @@ def on_rank_btn_click(n_clicks, data, V, R, G, som_attrs, ranking_size):
             html.Div([
                 html.A('Download Ranking', href='/download/ranking.csv')
             ], id='button-progress', className='mt-3 d-flex justify-content-center'),
+            dcc.Graph(
+                figure=go.Figure(
+                    data=[
+                        go.Scatter(
+                            y=convergence_curve
+                        )
+                    ],
+                    layout=go.Layout(
+                         xaxis=go.layout.XAxis(
+                            title=go.layout.xaxis.Title(
+                                text='Iterações',
+                                font=dict(
+                                    family='Courier New, monospace',
+                                    size=18,
+                                    color='#7f7f7f'
+                                )
+                            )
+                        ),
+                        yaxis=go.layout.YAxis(
+                            title=go.layout.yaxis.Title(
+                                text='Fitness',
+                                font=dict(
+                                    family='Courier New, monospace',
+                                    size=18,
+                                    color='#7f7f7f'
+                                )
+                            )
+                        )
+                    )
+                )
+            ),
         ])
     else:
         return ''

@@ -54,12 +54,18 @@ def qtdBasesDados(row):
     return int(field) if not pd.isnull(field) else 0
 
 def totalVitmasConsumado(row):
-    field = row['TOTAL DE VÍTIMAS-CONSUMADO']
-    return field if not pd.isnull(field) else 0
+    try:
+        field = row['TOTAL DE VÍTIMAS-CONSUMADO']
+        return float(field) if not pd.isnull(field) else 0
+    except:
+        return 0
 
 def totalVitmasTentado(row):
-    field = row['TOTAL DE VÍTIMAS-TENTADO']
-    return field if not pd.isnull(field) else 0
+    try:
+        field = row['TOTAL DE VÍTIMAS-TENTADO']
+        return float(field) if not pd.isnull(field) else 0
+    except:
+        return 0
 
 def prisaoPreventiva(row):
     field = row['TIPO DE PRISÃO DECRETADA']

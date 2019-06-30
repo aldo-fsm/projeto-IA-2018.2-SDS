@@ -10,43 +10,14 @@ class FuncaoRelevancia:
         self.pesos = pesos
         
     def __call__(self, row):
-        EV = evadido(row)
-        Tev = diasAposEvasao(row)
-        P = periculosidade(row)
-        AP = prioritario(row)
-        QP = qtdProcessos(row)
-        TVC = totalVitmasConsumado(row)
-        TVT = totalVitmasTentado(row)
-        PP = prisaoPreventiva(row)
-        PC = prisaoCondenatoria(row)
-        CVLImp = mpCVLI(row)
-        #Pcvli = probabilidadeCVLI(row)
-        
-        # ---------------- solução temporária para testes (necessário corrigir/tratar erros no attribute utils)
-        @np.vectorize
-        def toFloat(x):
-            try:
-                return float(x)
-            except:
-                return 0
-        # ----------------
-        Xr = np.array([EV, 1-np.tanh(Tev), P, AP, QP, TVC, TVT, PP, PC, CVLImp]) # ERRO (as vezes vem como strings - ['1','0',...,'32','-','5'])
-        Xr = toFloat(Xr)
-        return np.average(Xr, weights=self.pesos)
+        return np.average(row, weights=self.pesos)
 
 class FuncaoViabilidade:
     def __init__(self, pesos):
         self.pesos = pesos
 
     def __call__(self, row):
-        EC = enderecoConhecido(row)
-        FT = possuiFoto(row)
-        RG = possuiRG(row)
-        PD = qtdPrisaoDecretadas(row)
-        Texp = diasAposExpedicaoMandado(row)
-        SC = carcerario(row)
-        Xv = np.array([EC, FT, RG, PD, 1-np.tanh(Texp), SC])
-        return np.average(Xv, weights=self.pesos)
+        return np.average(row, weights=self.pesos)
 
 # class FitnessMult:
 #     def __init__(self, Cg, Cv, Cind, Kr, Kv, dataset):
